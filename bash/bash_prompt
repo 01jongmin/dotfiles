@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+cyan="\[\033[1;34m\]"
+
+# git function
+function git_branch() {
+	git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+function conda_env() {
+    if [ ! -z $CONDA_DEFAULT_ENV ]
+    then 
+        echo "($CONDA_DEFAULT_ENV) "
+    fi
+}
+
+PS1=""
+PS1+="\[\e[0;34m\]\$(conda_env)\[\e[m\]"        # conda env
+PS1+="\[\e[0;36m\]\u\[\e[m\]"                   # username
+PS1+=" "                                        # space
+PS1+="\[\e[0;31m\]\w\[\e[m\]"                   # current directory
+PS1+="\[\e[0;32m\]\$(git_branch)\[\e[m\]"       # git branch
+PS1+=" "                                        # space
+PS1+="\n$ "                                     # end prompt
+
+
+#PROMPT_COMMAND="printf '\n'"
+PROMPT_COMMAND="printf '\n'; $PROMPT_COMMAND"
+
