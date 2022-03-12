@@ -4,3 +4,7 @@
 function mkd() {
 	mkdir -p "$@" && cd "$_";
 }
+
+function cpdf () {
+  gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="$1" "${@:2}"
+}

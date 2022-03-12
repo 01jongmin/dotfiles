@@ -8,7 +8,9 @@ alias .....="cd ../../../.."
 alias dl="cd ~/Downloads"
 alias dk="cd ~/Desktop"
 alias dp="cd ~/Developer"
-alias uni="cd ~/Documents/University/Sophomore"
+alias dc="cd ~/Documents"
+alias uni="cd ~/Documents/University/Junior"
+alias kn="cd ~/Developer/KlearNow"
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`
