@@ -176,7 +176,6 @@
 
 (use-package magit)
 
-(setq auth-sources '("~/.authinfo"))
 (use-package forge)
 
 (custom-set-variables

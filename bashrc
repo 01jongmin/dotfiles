@@ -31,6 +31,7 @@ source ~/.bash/aliases.sh
 # Functions
 source ~/.bash/functions.sh
 
-#export PATH=/Library/Frameworks/Python.framework/Versions/3.8/bin$PATH
+#source ~/emsdk/emsdk_env.sh
+export PATH=${PATH}:"/Users/jongmin/Library/Python/3.8/bin"
 
-export CLICOLOR=1
+export CLICOLOR=2

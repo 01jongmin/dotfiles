@@ -189,3 +189,12 @@
 	signingkey = 0x4041D6463D48DAB8
 [gpg]
 	program = /usr/local/bin/gpg
+[credential]
+	helper = 
+	helper = /usr/local/share/gcm-core/git-credential-manager-core
+[credential "https://dev.azure.com"]
+	useHttpPath = true
+[init]
+	defaultBranch = main
+[github]
+	user = 01jongmin
