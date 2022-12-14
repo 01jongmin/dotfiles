@@ -27,12 +27,12 @@ set noerrorbells visualbell t_vb=
 
 set mouse+=a " Enable mouse support
 
+" Display character limit for line
 set colorcolumn=100
 highlight ColorColumn ctermbg=0 guibg=lightgrey
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'VundleVim/Vundle.vim'
 Plug 'mbbill/undotree'
 Plug 'prettier/vim-prettier', { 'do': 'yarn install' }
 Plug 'preservim/nerdcommenter'
@@ -40,9 +40,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'gruvbox-community/gruvbox'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'lervag/vimtex'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'tomlion/vim-solidity'
 
 call plug#end()            " required
 filetype plugin indent on    " required
