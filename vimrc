@@ -75,10 +75,3 @@ nnoremap <Leader>hsp :split<CR>
 nmap <Leader>gj :diffget //3<CR>
 nmap <Leader>gf :diffget //2<CR>
 nmap <Leader>gs :G<CR>
-
-set hidden "Not sure what this is
-set cmdheight=2
-
-"" Set Prettier on by default
-let g:prettier#autoformat = 1
-let g:prettier#autoformat_require_pragma = 0
