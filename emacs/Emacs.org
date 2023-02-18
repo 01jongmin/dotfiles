@@ -79,12 +79,14 @@
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (add-to-list 'default-frame-alist '(ns-appearance . dark)) 
 #+end_src
-** Startup
+** Dashboard
 #+begin_src emacs-lisp 
   (use-package dashboard
     :init
     (setq dashboard-startup-banner 'logo)
-    :config
+    (setq dashboard-items '((recents  . 5)
+                            (projects . 5)
+                            (agenda . 5)))
     (dashboard-setup-startup-hook))
 #+end_src
 * Keybindings
@@ -103,9 +105,11 @@
     :init
     (setq evil-want-integration t)     ; Integrate Evil with other modules 
     (setq evil-want-keybinding nil)
+    (setq evil-undo-system 'undo-tree)
     (evil-mode 1)
     (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+    )
 
   (use-package evil-collection
     :after evil
@@ -166,7 +170,7 @@ Registers hook to tangle Emacs.org to init.el on save
 
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook          #'jongmin/org-babel-tangle-config)))
 #+end_src
-** UI
+** Core
 *** Basic
 #+begin_src emacs-lisp
   (defun jongmin/org-mode-setup ()
@@ -177,11 +181,24 @@ Registers hook to tangle Emacs.org to init.el on save
     :pin org
     :hook (org-mode . jongmin/org-mode-setup)
     :config
+    (setq org-refile-targets
+          '(("Archive.org" :maxlevel . 1)
+            ("Tasks.org" :maxlevel . 1)))
+    ;; Save org buffers after refiling
+    (advice-add 'org-refile :after 'org-save-all-org-buffers)
     (setq org-agenda-files
-          '("~/org/agenda.org"))
+          '("~/org/agenda/Tasks.org"
+            "~/org/agenda/Birthdays.org"))
     (setq org-agenda-start-with-log-mode t)
-    (setq org-ellipsis " ▾"))
-#+end_src
+    (setq org-log-done 'time)
+    (setq org-log-into-drawer t)
+    (setq org-ellipsis " ▾")
+    (setq org-capture-templates
+          `(("t" "Tasks / Projects")
+            ("tt" "Task" entry (file+olp "~/org/agenda/Tasks.org" "Inbox")
+             "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)))
+    )
+          #+end_src
 *** Bullets
 #+begin_src emacs-lisp
   (use-package org-bullets
@@ -198,6 +215,62 @@ Registers hook to tangle Emacs.org to init.el on save
 
   (use-package visual-fill-column
     :hook (org-mode . jongmin/org-mode-visual-fill))
+#+end_src
+** Roam
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :hook org
+    :custom 
+    (org-roam-directory "~/RoamNotes/")
+    :config
+    (org-roam-setup)
+    )
+
+  (use-package org-roam-ui
+    :after org-roam
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+
+#+end_src
+** Leader Key
+#+begin_src emacs-lisp
+  (jongmin/leader-keys
+    "o" '(:ignore o :which-key "org")
+    "oa" '(org-agenda-list :which-key "org agenda")
+    "or" '(org-roam-buffer-toggle :which-key "org roam toggle")
+    "on" '(org-roam-node-find :which-key "org roam node find")
+    "oi" '(org-roam-node-insert :which-key "org roam node insert")
+    "oc" '(org-capture :which-key "org capture")
+    )
+#+end_src
+
+* File Management
+** Backup files
+#+begin_src emacs-lisp
+  ;; create the autosave dir if necessary, since emacs won't.
+                                          ;(make-directory "~/.emacs.d/autosaves/" t)
+  (setq backup-by-copying t      ; don't clobber symlinks
+        backup-directory-alist '(("." . "~/.emacs.d/backups/"))    ; don't litter my fs tree
+        delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)       ; use versioned backups
+  (setq auto-save-file-name-transforms
+        `((".*" "~/.emacs.d/autosaves/" t)))
+#+end_src
+** Undo Tree
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :init
+    (global-undo-tree-mode 1)
+    (setq undo-tree-visualizer-diff t)
+    (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
+
+  (jongmin/leader-keys
+    "fu" '(undo-tree-visualize :which-key "undo tree"))
 #+end_src
 * Programming
 ** Delimeters UI
@@ -233,17 +306,24 @@ Registers hook to tangle Emacs.org to init.el on save
     (setq lsp-enable-snippet nil)
     (lsp-enable-which-key-integration t))
 
+  (use-package flycheck
+    :hook lsp-mode
+    :init (global-flycheck-mode))
   ;; Show informations of the symbols on the current lin
   (use-package lsp-ui
-    :hook (lsp-mode . lsp-ui-mode))
+    :hook (lsp-mode . lsp-ui-mode)
+    :config
+    ;; (setq lsp-ui-sideline-show-hover t)
+    (setq lsp-ui-sideline-show-code-actions t)
+    ;; (setq lsp-ui-sideline-show-diagnostics t)
+    ;; (setq lsp-ui-doc-enable t)
+    )
 #+end_src
 *** C/C++
 #+begin_src emacs-lisp
-  ;(add-hook 'c++-mode-hook 'lsp)
-  (use-package ccls
-    :hook ((c-mode c++-mode objc-mode ) . lsp-deferred))
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
 
-   ;:init (setq ccls-executable "/Users/jongmin/.nix-profile/bin/ccls")
 #+end_src
 *** Rust
 #+begin_src emacs-lisp
@@ -252,21 +332,36 @@ Registers hook to tangle Emacs.org to init.el on save
 #+end_src
 *** Code Completion
 #+begin_src emacs-lisp
-  (use-package company
-    :after lsp-mode
-    :hook (lsp-mode . company-mode)
-    :bind (:map company-active-map
-                ("<tab>" . company-complete-selection))
-    (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common)))
+    (use-package company
+      :after lsp-mode
+      :hook (lsp-mode . company-mode)
+      :bind (:map company-active-map
+                  ("<tab>" . company-complete-selection))
+      (:map lsp-mode-map
+            ("<tab>" . company-indent-or-complete-common)))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+
 #+end_src
-*** Directory
+** DAP
+#+begin_src emacs-lisp
+  (use-package dap-mode
+    :hook lsp-mode
+    :config
+     (require 'dap-gdb-lldb)
+     (dap-gdb-lldb-setup)
+    )
+
+
+  #+end_src
+** Directory
 #+begin_src emacs-lisp
   (use-package lsp-treemacs
     :after lsp
     :config (lsp-treemacs-sync-mode 1))
 #+end_src
-*** Projectile
+** Projectile
 #+begin_src emacs-lisp
   ;; (use-package projectile
   ;;   :ensure t
@@ -275,13 +370,13 @@ Registers hook to tangle Emacs.org to init.el on save
   ;;   :custom ((projectile-completion-system 'ivy))
   ;;   :bind-keymap
   ;;   ("C-c p" . projectile-command-map)    :init
-  ;;   (when (file-directory-p "~/Developer")
-  ;;     (setq projectile-project-search-path '("~/Developer")))
   ;;   (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package projectile
     :init
-    (projectile-mode 1))
+    (projectile-mode 1)
+    (when (file-directory-p "~/Developer")
+      (setq projectile-project-search-path '("~/Developer"))))
   ;;   :bind (:map projectile-mode-map
   ;;               ("s-p" . projectile-command-map)
   ;;               ("C-c p" . projectile-command-map)))
