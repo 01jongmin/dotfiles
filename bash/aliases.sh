@@ -9,7 +9,7 @@ alias dl="cd ~/Downloads"
 alias dk="cd ~/Desktop"
 alias dp="cd ~/Developer"
 alias dc="cd ~/Documents"
-alias uni="cd ~/Documents/University/Junior"
+alias uni="cd ~/Documents/University/Senior"
 alias kn="cd ~/Developer/KlearNow"
 
 # Detect which `ls` flavor is in use
