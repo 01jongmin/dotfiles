@@ -35,3 +35,14 @@ source ~/.bash/functions.sh
 export PATH=${PATH}:"/Users/jongmin/Library/Python/3.8/bin"
 
 export CLICOLOR=2
+
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export LC_CTYPE="en_US.UTF-8"
+
+#source <(kubectl completion bash)
+#
+#
+# https://github.com/Homebrew/homebrew-core/issues/14737#issuecomment-309848851
+GPG_TTY=$(tty)
+export GPG_TTY
