@@ -16,7 +16,8 @@
 	defaultBranch = main
 
 [merge]
-	tool = 
+	tool = emerge
+	conflictStyle = diff3
 	log = true
 
 [color]
