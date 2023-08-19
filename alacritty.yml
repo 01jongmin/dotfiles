@@ -1,0 +1,8 @@
+window:
+  opacity: 0.9
+
+shell:
+  program: /bin/zsh
+
+font:
+  size: 17.0
