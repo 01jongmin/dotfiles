@@ -214,6 +214,12 @@ Registers hook to tangle Emacs.org to init.el on save
     (visual-line-mode 1)) ; auto-wrap
 
   (use-package org
+    ;; :straight (org :type git
+    ;;                :host github
+    ;;                :repo "emacs-straight/org-mode"
+    ;;                :tag "e.6.9")
+
+    :straight (:type built-in)
     :hook (org-mode . jongmin/org-mode-setup)
     :config
     (require 'org-habit)
@@ -471,6 +477,9 @@ Registers hook to tangle Emacs.org to init.el on save
 #+end_src
 *** C/C++
 #+begin_src emacs-lisp
+  (use-package cmake-mode)
+  (setq-default c-basic-offset 4)
+
 #+end_src
 *** CMake
 #+begin_src emacs-lisp
@@ -503,17 +512,17 @@ Registers hook to tangle Emacs.org to init.el on save
   (use-package dap-mode
     :hook lsp-mode
     :config
-    (require 'dap-gdb-lldb)
-    (dap-gdb-lldb-setup)
+    (require 'dap-cpptools)
+    (dap-cpptools-setup))
 
-    (defun dap-debug-create-or-edit-json-template ()
-      "Edit the C++ debugging configuration or create + edit if none exists yet."
-      (interactive)
-      (let ((filename (concat (lsp-workspace-root) "/launch.json"))
-            (default "~/.emacs.d/default-launch.json"))
-        (unless (file-exists-p filename)
-          (copy-file default filename))
-        (find-file-existing filename))))
+  ;;   (defun dap-debug-create-or-edit-json-template ()
+  ;;     "Edit the C++ debugging configuration or create + edit if none exists yet."
+  ;;     (interactive)
+  ;;     (let ((filename (concat (lsp-workspace-root) "/launch.json"))
+  ;;           (default "~/.emacs.d/default-launch.json"))
+  ;;       (unless (file-exists-p filename)
+  ;;         (copy-file default filename))
+  ;;       (find-file-existing filename))))
 
   (jongmin/leader-keys
     "d" '(:ignore t :which-key "debugger")
