@@ -1,6 +1,16 @@
 #+title Emacs Configuration
 #+PROPERTY: header-args :tangle ./init.el
 
+* TODO
+Transparency
+Window transparent
+
+* Setup Notes
+Install node (required by bash ls)
+Install cmake-language-server
+Install all-the-icons
+Install nerd-fonts
+
 * Debug
 #+begin_src emacs-lisp
   ;; https://emacs.stackexchange.com/questions/74289/emacs-28-2-error-in-macos-ventura-image-type-invalid-image-type-svg
@@ -78,6 +88,7 @@
   (column-number-mode)                      ; Display current line or column
   (global-display-line-numbers-mode t)
   (setq display-line-numbers 'relative)
+  (setq display-line-numbers-type 'relative)
   (setq display-line-numbers-width 3)
 
   ;; Disable line numbers for some modes
@@ -305,8 +316,6 @@ Registers hook to tangle Emacs.org to init.el on save
     (setq undo-tree-visualizer-diff t)
     (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
     )
-  (jongmin/leader-keys
-    "fu" '(undo-tree-visualize :which-key "undo tree"))
 #+end_src
 ** Dired
 #+begin_src emacs-lisp
@@ -336,9 +345,19 @@ Registers hook to tangle Emacs.org to init.el on save
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
-
+#+end_src
+** Leader
+#+begin_src emacs-lisp
+  (jongmin/leader-keys
+    "f" '(:ignore f :which-key "file")
+    "fj" '(dired-jump :which-key "dired jump")
+    "fu" '(undo-tree-visualize :which-key "undo tree"))
 #+end_src
 * Programming
+** Tabs are evil
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode nil)
+#+end_src
 ** Delimeters UI
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
@@ -373,6 +392,7 @@ Registers hook to tangle Emacs.org to init.el on save
 #+begin_src emacs-lisp
   (jongmin/leader-keys
     "g" '(:ignore g :which-key "git")
+    "gb" '(magit-blame :which-key "git blame")
     "gs" '(magit-status :which-key "status")
 
     "gg" '(:ignore gg :which-key "git gutter")
@@ -452,6 +472,10 @@ Registers hook to tangle Emacs.org to init.el on save
 *** C/C++
 #+begin_src emacs-lisp
 #+end_src
+*** CMake
+#+begin_src emacs-lisp
+  (use-package cmake-mode)
+#+end_src
 *** Rust
 #+begin_src emacs-lisp
   (use-package rust-mode)
@@ -459,7 +483,6 @@ Registers hook to tangle Emacs.org to init.el on save
 *** C#
 #+begin_src emacs-lisp
   (use-package csharp-mode)
-  (setq lsp-csharp-omnisharp-roslyn-binary-path "/usr/local/bin/omnisharp")
 #+end_src
 *** Code Completion
 #+begin_src emacs-lisp
@@ -474,7 +497,6 @@ Registers hook to tangle Emacs.org to init.el on save
   ;; company frontend with icons
   (use-package company-box
     :hook (company-mode . company-box-mode))
-
 #+end_src
 *** DAP
 #+begin_src emacs-lisp
@@ -509,10 +531,9 @@ Registers hook to tangle Emacs.org to init.el on save
   (use-package docker-tramp
     :after tramp)
 #+end_src
-** Directory
+** Treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
-    :defer t
     :config
     (treemacs-project-follow-mode t)
     (treemacs-follow-mode t)
@@ -535,19 +556,20 @@ Registers hook to tangle Emacs.org to init.el on save
 #+begin_src emacs-lisp
   (use-package projectile
     :init
-    (projectile-mode 1)
-    (when (file-directory-p "~/Developer")
-      (setq projectile-project-search-path '("~/Developer"))))
-
+    (projectile-mode 1))
+  ;;   (when (file-directory-p "~/Developer")
+  ;;     (setq projectile-project-search-path '("~/Developer"))))
+  ;; 
+  ; User rg but keep projectile-find-project
   (use-package counsel-projectile
-    :after projectile
-    :config
-    (counsel-projectile-mode))
+    :after projectile)
 
   (jongmin/leader-keys
-    "p" '(projectile-command-map :which-key "project"))
+    "p" '(projectile-command-map :which-key "project")
+    "psr" 'counsel-projectile-rg)
 #+end_src
 * Ivy
+** Core
 #+begin_src emacs-lisp
   (use-package ivy
     :diminish
@@ -564,7 +586,9 @@ Registers hook to tangle Emacs.org to init.el on save
   (jongmin/leader-keys
     "b" '(:ignore t :which-key "buffer")
     "bs" 'counsel-switch-buffer)
-
+#+end_src
+** Misc
+#+begin_src emacs-lisp
   ;; Adds information to switch-buffer and other ivy commands
   (use-package ivy-rich
     :after ivy
