@@ -624,17 +624,15 @@ Registers hook to tangle Emacs.org to init.el on save
     (ivy-posframe-height     10)
     (ivy-posframe-min-height 10)
     :config
-    (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center))) ;; (setq ivy-posframe-parameters '((internal-border-width . 10)
-    ;;                                 (min-width . 90)
-    ;;                                 (min-height . 20)
-    ;;                                 (left-fringe . 10)
-    ;;                                 (right-fringe . 10)
-    ;;                                 (transparency . (85 . 85))))
-    (setq ivy-posframe-parameters '((parent-frame . nil)
-                                    (left-fringe . 8)
-                                    (right-fringe . 8)
-                                    (alpha . 90)
-                                    ))
+    (setq ivy-posframe-display-functions-alist
+          '((swiper          . ivy-display-function-fallback)
+            (counsel . ivy-display-function-fallback)
+            (t               . ivy-posframe-display)))
+    ;; (setq ivy-posframe-parameters '((parent-frame . nil)
+    ;;                                 (left-fringe . 8)
+    ;;                                 (right-fringe . 8)
+    ;;                                 (alpha . 90)
+    ;;                                 ))
     (ivy-posframe-mode 1))
 #+end_src
 * Help
