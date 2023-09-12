@@ -471,6 +471,10 @@
          ("TAB" . ivy-alt-done)
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ; remap buffer kill to match evil mapping
+         ("C-k" . ivy-previous-line)
+         ("C-q" . ivy-switch-buffer-kill)
          )
   :init
   (counsel-mode t)
@@ -495,17 +499,15 @@
   (ivy-posframe-height     10)
   (ivy-posframe-min-height 10)
   :config
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center))) ;; (setq ivy-posframe-parameters '((internal-border-width . 10)
-  ;;                                 (min-width . 90)
-  ;;                                 (min-height . 20)
-  ;;                                 (left-fringe . 10)
-  ;;                                 (right-fringe . 10)
-  ;;                                 (transparency . (85 . 85))))
-  (setq ivy-posframe-parameters '((parent-frame . nil)
-                                  (left-fringe . 8)
-                                  (right-fringe . 8)
-                                  (alpha . 90)
-                                  ))
+  (setq ivy-posframe-display-functions-alist
+        '((swiper          . ivy-display-function-fallback)
+          (counsel . ivy-display-function-fallback)
+          (t               . ivy-posframe-display)))
+  ;; (setq ivy-posframe-parameters '((parent-frame . nil)
+  ;;                                 (left-fringe . 8)
+  ;;                                 (right-fringe . 8)
+  ;;                                 (alpha . 90)
+  ;;                                 ))
   (ivy-posframe-mode 1))
 
 (use-package which-key
