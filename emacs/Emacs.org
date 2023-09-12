@@ -594,6 +594,10 @@ Registers hook to tangle Emacs.org to init.el on save
            ("TAB" . ivy-alt-done)
            ("C-j" . ivy-next-line)
            ("C-k" . ivy-previous-line)
+           :map ivy-switch-buffer-map
+           ; remap buffer kill to match evil mapping
+           ("C-k" . ivy-previous-line)
+           ("C-q" . ivy-switch-buffer-kill)
            )
     :init
     (counsel-mode t)
