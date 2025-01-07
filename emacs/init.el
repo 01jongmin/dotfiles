@@ -1,9 +1,3 @@
-;; https://emacs.stackexchange.com/questions/74289/emacs-28-2-error-in-macos-ventura-image-type-invalid-image-type-svg
-(add-to-list 'image-types 'svg)
-
-;; For debugging purposes
-(setq use-package-verbose t)
-
 (defvar bootstrap-version)
 (let ((bootstrap-file (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
       (bootstrap-version 6))
@@ -38,7 +32,7 @@
                                (lambda (bg) (set-face-background 'mode-line bg))
                                orig-bg))))
 
-(set-face-attribute 'default nil :font "fira code retina" :height 170)
+(set-face-attribute 'default nil :font "fira code" :height 150)
 
 (use-package doom-themes
   :init (load-theme 'doom-one t))
@@ -65,6 +59,7 @@
                 shell-mode-hook
                 eshell-mode-hook
                 treemacs-mode-hook
+                elfeed-show-mode-hook
                 mu4e-main-mode-hook
                 mu4e-headers-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
@@ -72,6 +67,7 @@
 (add-hook 'mu4e-headers-mode-hook (lambda () (setq-local line-spacing 0.7)))
 
 ;; Change window bar appearance in emacs
+(setq frame-title-format nil)
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 
@@ -83,7 +79,11 @@
                           (agenda . 5)))
   (dashboard-setup-startup-hook))
 
+(require 'ansi-color)
+(defun my-compilation-filter ()
+  (ansi-color-apply-on-region (point-min) (point-max)))
 
+(add-hook 'compilation-filter-hook 'my-compilation-filter)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -99,7 +99,6 @@
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   (evil-global-set-key 'motion "0" 'evil-beginning-of-visual-line)
-
   )
 
 (use-package evil-collection
@@ -138,13 +137,14 @@
   "st" '(hydra-text-scale/body :which-key "scale text")
   "sw"  '(hydra-window-nav/body :which-key "window management"))
 
-(defun jongmin/org-babel-tangle-config ()
+(defun jongmin/org-babel-tangle-config-new ()
   (when (string-equal (buffer-file-name)
-		      (expand-file-name "~/dotfiles/emacs/Emacs.org"))
+                      (expand-file-name "~/dotfiles/emacs/Emacs.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook          #'jongmin/org-babel-tangle-config)))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook          #'jongmin/org-babel-tangle-config-new)))
 
 (defun jongmin/org-mode-setup ()
   (org-indent-mode)
@@ -162,23 +162,23 @@
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
   (setq org-refile-targets
-	'(("Archive.org" :maxlevel . 1)
-	  ("Tasks.org" :maxlevel . 1)))
+        '(("Archive.org" :maxlevel . 1)
+          ("Tasks.org" :maxlevel . 1)))
   ;; Save org buffers after refiling
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
   (setq org-agenda-files
-	'("~/org/agenda/Tasks.org"
-	  "~/org/agenda/Birthdays.org"
-	  "~/org/agenda/Habits.org"))
+        '("~/org/agenda/Tasks.org"))
+          ;;"~/org/agenda/Birthdays.org"
+          ;;"~/org/agenda/Habits.org"))
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-ellipsis " ▾")
   (setq org-capture-templates
-	`(("t" "Tasks / Projects")
-	  ("tt" "Task" entry (file+olp "~/org/agenda/Tasks.org" "Inbox")
-	   "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)))
+        `(("t" "Tasks / Projects")
+          ("tt" "Task" entry (file+olp "~/org/agenda/Tasks.org" "Inbox")
+           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)))
   (plist-put org-format-latex-options :scale 2)
   )
 
@@ -189,7 +189,7 @@
 
 (defun jongmin/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
-	visual-fill-column-center-text t)
+        visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -221,6 +221,7 @@
   "og" '(org-roam-tag-add :which-key "org tag add")
   "ot" '(lambda() (interactive)(find-file "~/org/agenda/Tasks.org") :which-key "org tasks")
   "od" '(lambda() (interactive)(find-file "~/dotfiles/emacs/Emacs.org") :which-key "org configuration")
+  "of" '(lambda() (interactive)(find-file "~/org/agenda/femto.org") :which-key "femto")
   "oj" '(:ignore oj :which-key "org journal")
   "ojt" '(org-roam-dailies-capture-today :which-key "today")
   "ojg" '(:ignore ojg :which-key "org journal goto")
@@ -228,7 +229,7 @@
   )
 
 ;; create the autosave dir if necessary, since emacs won't.
-					;(make-directory "~/.emacs.d/autosaves/" t)
+                                        ;(make-directory "~/.emacs.d/autosaves/" t)
 (setq backup-by-copying t      ; don't clobber symlinks
       backup-directory-alist '(("." . "~/.emacs.d/backups/"))    ; don't litter my fs tree
       delete-old-versions t
@@ -278,6 +279,53 @@
   "fj" '(dired-jump :which-key "dired jump")
   "fu" '(undo-tree-visualize :which-key "undo tree"))
 
+(use-package embark-consult)
+
+(use-package vertico
+  :bind (:map minibuffer-local-map
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous))
+  (:map vertico-multiform-map
+        ("C-c C-o" . vertico-multiform-buffer)
+        ("C-c C-e" . embark-collect))
+  :init
+  (vertico-mode)
+  (vertico-multiform-mode)
+  )
+
+(use-package vertico-posframe
+  :init
+  (setq vertico-multiform-commands
+        '((consult-line (:not posframe))
+          (consult-ripgrep (:not posframe) buffer indexed)
+          (t posframe)))
+  (vertico-posframe-mode 1)
+  )
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles partial-completion)))))
+
+(use-package marginalia
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle))
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :bind (("C-s" . consult-line))
+  :config
+  (consult-customize
+   consult-grep
+   :preview-key nil)
+  )
+
+(jongmin/leader-keys
+  "b" '(:ignore t :which-key "buffer")
+  "bs" 'consult-buffer)
+
 (setq-default indent-tabs-mode nil)
 
 (use-package rainbow-delimiters
@@ -289,101 +337,56 @@
 (use-package magit
   :commands magit-status)
 
-;; token stored in plaintext in ~/.authinfo
-(use-package forge
-  :after magit)
-
-(use-package git-gutter
-  :straight git-gutter-fringe
-  :diminish
-  :hook ((text-mode . git-gutter-mode)
-         (prog-mode . git-gutter-mode)))
-
 (jongmin/leader-keys
   "g" '(:ignore g :which-key "git")
   "gb" '(magit-blame :which-key "git blame")
-  "gs" '(magit-status :which-key "status")
+  "gs" '(magit-status :which-key "status"))
 
-  "gg" '(:ignore gg :which-key "git gutter")
-  "ggn" '('git-gutter:next-hunk :which-key "next")
-  "ggp" '('git-gutter:previous-hunk :which-key "previous")
-  "ggr" '('git-gutter:revert-hunk :which-key "revert")
-
-  "gm" '(:ignore gm :which-key "git smerge")
-  "gmr" '(smerge-refine :which-key "refine")
-  "gmb" '(smerge-keep-base :which-key "keep base")
-  "gml" '(smerge-keep-lower :which-key "keep lower")
-  "gmu" '(smerge-keep-upper :which-key "keep upper")
-  "gmn" '(smerge-next :which-key "next")
-  )
+(jongmin/leader-keys
+  "r" '(:ignore r :which-key "regex")
+  "rr" 'query-replace-regexp)
 
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :config
+  :init
   ;; Defaults to improve performance
   ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
   (setq gc-cons-threshold 100000000)
   (setq read-process-output-max (* 1024 1024)) ;; 1mb
-
-  (setq lsp-lens-enable nil)
-  (setq lsp-enable-snippet nil)
-  (setq lsp-enable-which-key-integration t)
-  ;; For performance, need to enable this
-  ;; https://github.com/emacs-lsp/lsp-mode/issues/2709
-  ;; (setq lsp-log-io t)
-
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection "clangd")
-                    :major-modes '(c-mode c++-mode)
-                    :remote? t
-                    :add-on? t
-                    :server-id 'clangd-remote))
+  (setq lsp-log-io nil)
+  (setq lsp-clients-clangd-args '("--limit-references=0"))
+  (setq lsp-auto-guess-root nil)
+  (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
   )
 
-  (add-hook 'prog-mode-hook 'lsp)
+(add-hook 'prog-mode-hook 'lsp)
 
 (use-package flycheck
-  :hook lsp-mode
+  :ensure t
   :init (global-flycheck-mode))
 
-(use-package flycheck-clang-tidy
-  :after flycheck
-  :hook
-  (flycheck-mode . flycheck-clang-tidy-setup)
-  )
-
-;; Show informations of the symbols on the current line
 (use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
   :config
-  (setq lsp-ui-sideline-show-hover t)
-  ;; (setq lsp-ui-sideline-show-code-actions t)
+  ;; (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-diagnostics t)
-  (setq lsp-ui-doc-enable t)
+  (setq lsp-ui-sideline-show-code-actions t)
+  (setq lsp-diagnostics-provider :flycheck)
   )
+;; (setq lsp-ui-sideline-show-hover t)
 
 (jongmin/leader-keys
   "l"  '(:ignore t :which-key "lsp")
+  "ln" 'lsp-ui-find-next-reference
   "lf" 'lsp-find-definition
   "lc" 'lsp-find-declaration
   "lr" 'lsp-rename
-  "ls" 'counsel-imenu
   "le" 'lsp-treemacs-errors-list
   "la" 'lsp-execute-code-action
   "lh" 'lsp-treemacs-call-hierarchy
   "lp"  '(:ignore t :which-key "lsp peek")
   "lpr" 'lsp-ui-peek-find-references
+  "lg"  '(:ignore t :which-key "lsp global")
+  "lgr" 'lsp-find-references
   )
-
-(use-package cmake-mode)
-; When typing o in evil mode, default offset needs to be defined 
-(setq-default c-basic-offset 4)
-
-(use-package cmake-mode)
-
-(use-package rust-mode)
-
-(use-package csharp-mode)
 
 (use-package company
   :after lsp-mode
@@ -397,40 +400,16 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
-(use-package dap-mode
-  :hook lsp-mode
-  :config
-  (require 'dap-cpptools)
-  (dap-cpptools-setup))
+(use-package cmake-mode)
 
-;;   (defun dap-debug-create-or-edit-json-template ()
-;;     "Edit the C++ debugging configuration or create + edit if none exists yet."
-;;     (interactive)
-;;     (let ((filename (concat (lsp-workspace-root) "/launch.json"))
-;;           (default "~/.emacs.d/default-launch.json"))
-;;       (unless (file-exists-p filename)
-;;         (copy-file default filename))
-;;       (find-file-existing filename))))
+(use-package clang-format
+  :after lsp
+  :config 
+  (global-set-key C-M-\ 'clang-format-region))
 
-(jongmin/leader-keys
-  "d" '(:ignore t :which-key "debugger")
-  "dd" 'dap-debug
-  "dn" 'dap-next
-  "dc" 'dap-continue
-  "ds" '(:ignore t)
-  "dsi" 'dap-step-in
-  "dso" 'dap-step-out
-  "dsd" 'dap-delete-session
-  "db" '(:ignore t :which-key "breakpoint")
-  "dba" 'dap-breakpoint-add
-  "dbd" 'dap-breakpoint-delete
-  "dbl" 'dap-ui-breakpoints-list)
+  (setq-default c-basic-offset 4)
 
-(use-package tramp
-  :straight nil)
-
-(use-package docker-tramp
-  :after tramp)
+(use-package csharp-mode)
 
 (use-package treemacs
   :config
@@ -443,72 +422,21 @@
   (setq treemacs-follow-after-init t)
   )
 
-(use-package treemacs-projectile
-  :after (treemacs projectile))
-
 (use-package lsp-treemacs
   :after lsp
   :config (lsp-treemacs-sync-mode 1))
 
-(use-package projectile
-  :init
-  (projectile-mode 1))
-;;   (when (file-directory-p "~/Developer")
-;;     (setq projectile-project-search-path '("~/Developer"))))
-;; 
-; User rg but keep projectile-find-project
-(use-package counsel-projectile
-  :after projectile)
+(use-package project)
 
 (jongmin/leader-keys
-  "p" '(projectile-command-map :which-key "project")
-  "psr" 'counsel-projectile-rg)
-
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ; remap buffer kill to match evil mapping
-         ("C-k" . ivy-previous-line)
-         ("C-q" . ivy-switch-buffer-kill)
-         )
-  :init
-  (counsel-mode t)
-  (ivy-mode 1))
-
-(jongmin/leader-keys
-  "b" '(:ignore t :which-key "buffer")
-  "bs" 'counsel-switch-buffer)
-
-;; Adds information to switch-buffer and other ivy commands
-(use-package ivy-rich
-  :after ivy
-  :config
-  (ivy-rich-mode 1))
-
-;; Enables the ivy screen to be positioned centered
-(use-package ivy-posframe
-  :after ivy
-  :custom
-  (ivy-posframe-width      115)
-  (ivy-posframe-min-width  115)
-  (ivy-posframe-height     10)
-  (ivy-posframe-min-height 10)
-  :config
-  (setq ivy-posframe-display-functions-alist
-        '((swiper          . ivy-display-function-fallback)
-          (counsel . ivy-display-function-fallback)
-          (t               . ivy-posframe-display)))
-  ;; (setq ivy-posframe-parameters '((parent-frame . nil)
-  ;;                                 (left-fringe . 8)
-  ;;                                 (right-fringe . 8)
-  ;;                                 (alpha . 90)
-  ;;                                 ))
-  (ivy-posframe-mode 1))
+  "p" '(:ignore t :which-key "project")
+  "pp" 'project-switch-project
+  "pc" 'project-compile
+  "pf" 'project-find-file
+  "pb" 'project-switch-to-buffer
+  "psr" 'consult-ripgrep
+  "prr"     'project-query-replace-regexp
+  )
 
 (use-package which-key
   :defer 0 
@@ -516,196 +444,4 @@
   (which-key-mode)
   (setq which-key-idle-delay 0.3))
 
-(use-package mu4e
-  :straight nil
-  :defer 4
-  :load-path  "/Users/jongmin/Developer/mu/mu4e"
-  ;; :commands mu4e
-  :config
-  (setq shr-color-visible-luminance-min 80)
-
-  (add-to-list 'mu4e-header-info-custom
-               '(:empty . (:name "Empty"
-                                 :shortname ""
-                                 :function (lambda (msg) "  "))))
-
-
-  (setq mu4e-headers-fields 
-        '(
-          (:empty       .   2)
-          (:from        .  22)
-          (:human-date  .  10)
-          (:subject     . nil)
-          ))
-
-  (custom-set-faces
-   '(mu4e-header-face ((t (:family "San Serif" :height 180))))
-   '(mu4e-unread-face ((t (:family "San Serif" :foreground "DeepSkyBlue3" :height 180))))
-   '(mu4e-header-highlight-face ((t (:background "gray35" :height 180 :family "San Serif"))))
-   )
-
-  (setq mu4e-headers-precise-alignment t)
-
-  (setq truncate-string-ellipsis "...")
-
-  ;; we installed this with homebrew
-  (setq mu4e-mu-binary (executable-find "mu"))
-
-  ;; this is the directory we created before:
-  (setq mu4e-maildir "~/.maildir")
-
-  ;; this command is called to sync imap servers:
-  (setq mu4e-get-mail-command (concat (executable-find "mbsync") " -a"))
-  ;; how often to call it in seconds:
-  (setq mu4e-update-interval 300)
-  ;; save attachment to desktop by default
-  ;; or another choice of yours:
-  (setq mu4e-attachment-dir "~/Desktop")
-
-  ;; rename files when moving - needed for mbsync:
-  (setq mu4e-change-filenames-when-moving t)
-
-  (setq mu4e-compose-format-flowed t)
-
-  (setq jm/mu4e-inbox-query
-        "(maildir:/personal/INBOX OR maildir:/seas/INBOX) AND flag:unread")
-
-  ;; https://github.com/djcb/mu/issues/1136
-  ;; Setting the T mark on gmail doesn't work
-  (setf (alist-get 'trash mu4e-marks)
-        (list :char '("d" . "▼")
-              :prompt "dtrash"
-              :dyn-target (lambda (target msg)
-                            (mu4e-get-trash-folder msg))
-              :action (lambda (docid msg target)
-                        ;; Here's the main difference to the regular trash mark,
-                        ;; no +T before -N so the message is not marked as
-                        ;; IMAP-deleted:
-                        (mu4e--server-move docid (mu4e--mark-check-target target) "-N"))))
-
-  (setq message-send-mail-function 'smtpmail-send-it)
-
-  (setq mu4e-contexts
-        (list
-         ;; Work account
-         (make-mu4e-context
-          :name "Personal"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address . "01jongminchoi@gmail.com")
-                  (user-full-name    . "Jong Min Choi")
-                  (smtpmail-smtp-server . "smtp.gmail.com")
-                  (smtpmail-smtp-service . "465")
-                  (smtpmail-stream-type . ssl)
-                  (mu4e-drafts-folder  . "/personal/[Gmail].Drafts")
-                  (mu4e-sent-folder  . "/personal/[Gmail].Sent Mail")
-                  (mu4e-refile-folder  . "/personal/[Gmail].All Mail")
-                  (mu4e-trash-folder  . "/personal/[Gmail].Trash")))
-
-         ;; seas account
-         (make-mu4e-context
-          :name "seas"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/seas" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address . "jongmin@seas.upenn.edu")
-                  (user-full-name    . "Jong Min Choi")
-                  (smtpmail-smtp-server . "smtp.gmail.com")
-                  (smtpmail-smtp-service . "465")
-                  (smtpmail-stream-type . ssl)
-                  (mu4e-drafts-folder  . "/seas/[Gmail].Drafts")
-                  (mu4e-sent-folder  . "/seas/[Gmail].Sent Mail")
-                  (mu4e-refile-folder  . "/seas/[Gmail].All Mail")
-                  (mu4e-trash-folder  . "/seas/[Gmail].Trash")
-                  (mu4e-maildir-shortcuts . ( ("/seas/[Gmail].All Mail"  . ?a)
-                                              ("/seas/[Gmail].Trash"       . ?t)))
-
-                  ))))
-
-
-  (defun jm/go-to-inbox ()
-    (interactive)
-    (mu4e-headers-search jm/mu4e-inbox-query))
-
-
-  (add-to-list 'mu4e-bookmarks
-               '(:name  "Unread Inbox"
-                 :query "(maildir:/personal/INBOX OR maildir:/seas/INBOX) AND flag:unread"
-                 :key   ?i))
-
-  (add-to-list 'mu4e-bookmarks
-               '(:name  "Combined Inbox"
-                 :query "(maildir:/personal/INBOX OR maildir:/seas/INBOX)" 
-                 :key   ?c))
-
-  (setq mu4e-maildir-shortcuts
-        '(("/pesonal/Inbox"             . ?i)
-          ("/personal/[Gmail].Sent Mail" . ?s)
-          ("/personal/[Gmail].Trash"     . ?t)
-          ("/personal/[Gmail].Drafts"    . ?d)
-          ("/personal/[Gmail].All Mail"  . ?a)))
-
-  (setq mu4e-context-policy 'pick-first)
-
-  (jongmin/leader-keys
-    "m" '(:ignore m :which-key "mu4e")
-    "mu" '(mu4e :which-key "open mu4e")
-    "mi" 'jm/go-to-inbox
-    "ms" 'mu4e-update-mail-and-index)
-
-  (mu4e t)
-  )
-
-;; "maildir:/seas/INBOX AND flag:unread")
-;; "flag:unread")
-(use-package mu4e-alert
-  :after mu4e
-  :config 
-  (setq mu4e-alert-interesting-mail-query jm/mu4e-inbox-query)
-
-  (setq mu4e-alert-notify-repeated-mails nil)
-
-  (mu4e-alert-set-default-style 'osx-notifier)
-  (mu4e-alert-enable-mode-line-display)
-  (mu4e-alert-enable-notifications)
-  )
-
-;; (add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)
-
-;; (use-package mu4e-views
-;;   :straight (mu4e-views :type git :host github :repo "lordpretzel/mu4e-views" :branch "mu-1.8-support")
-;;   :after mu4e
-;;   :bind (:map mu4e-headers-mode-map
-;;               ("C-j" . mu4e-views-cursor-msg-view-window-down) ;; from headers window scroll the email view
-;;               ("C-k" . mu4e-views-cursor-msg-view-window-up) ;; from headers window scroll the email view
-;;               )
-;;   :config
-;;   (setq mu4e-views-auto-view-selected-message t)
-;;   (setq mu4e-views-default-view-method "html") ;; make xwidgets default
-;;   (mu4e-views-mu4e-use-view-msg-method "html") ;; select the default
-;;   )
-
-;; (use-package mu4e-thread-folding
-;;   :straight (mu4e-thread-folding :type git :host github :repo "rougier/mu4e-thread-folding")
-;;   :after mu4e
-;;   :config
-;;   (define-key mu4e-headers-mode-map (kbd "<tab>")     'mu4e-headers-toggle-at-point)
-;;   (define-key mu4e-headers-mode-map (kbd "<left>")    'mu4e-headers-fold-at-point)
-;;   (define-key mu4e-headers-mode-map (kbd "<S-left>")  'mu4e-headers-fold-all)
-;;   (define-key mu4e-headers-mode-map (kbd "<right>")   'mu4e-headers-unfold-at-point)
-;;   (define-key mu4e-headers-mode-map (kbd "<S-right>") 'mu4e-headers-unfold-all)
-;;   )
-
-(use-package term
-  :commands term
-  :config
-  (setq explicit-shell-file-name "bash"))
-
-(use-package elfeed
-  :commands elfeed 
-  :config
-  (setq elfeed-feeds
-        '("https://gadallon.substack.com/feed")))
+(use-package tldr)
