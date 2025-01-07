@@ -6,3 +6,5 @@ shell:
 
 font:
   size: 17.0
+
+TERM: st-256color
