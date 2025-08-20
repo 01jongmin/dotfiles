@@ -256,7 +256,7 @@
 
   ;; Move delete files to the Trash
   (setq delete-by-moving-to-trash t)
-  (setq trash-directory "~/.Trash")
+  (setq trash-directory "~/.local/share/Trash")
 
   (evil-collection-define-key 'normal 'dired-mode-map
     "h" 'dired-single-up-directory
@@ -287,7 +287,8 @@
               ("C-k" . vertico-previous))
   (:map vertico-multiform-map
         ("C-c C-o" . vertico-multiform-buffer)
-        ("C-c C-e" . embark-collect))
+        ("C-c C-e" . embark-collect)
+        ("C-c C-x" . vertico-exit-input))
   :init
   (vertico-mode)
   (vertico-multiform-mode)
@@ -353,9 +354,24 @@
   (setq gc-cons-threshold 100000000)
   (setq read-process-output-max (* 1024 1024)) ;; 1mb
   (setq lsp-log-io nil)
-  (setq lsp-clients-clangd-args '("--limit-references=0"))
   (setq lsp-auto-guess-root nil)
   (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
+  (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+
+  ;; Combine both sets of arguments
+  (setq lsp-clients-clangd-args '("--limit-references=0"))
+
+  :config
+  ;; Function to dynamically set compile-commands-dir
+  (defun my-lsp-clangd-set-compile-commands-dir ()
+    "Set clangd compile-commands-dir to current project root."
+    (when-let ((proj (project-current)))
+      (setq-local lsp-clients-clangd-args 
+                  (append '("--limit-references=0") 
+                          `("--compile-commands-dir" ,(project-root proj))))))
+
+  ;; Apply this when LSP starts
+  (add-hook 'lsp-mode-hook #'my-lsp-clangd-set-compile-commands-dir)
   )
 
 (add-hook 'prog-mode-hook 'lsp)
@@ -407,9 +423,27 @@
   :config 
   (global-set-key C-M-\ 'clang-format-region))
 
-  (setq-default c-basic-offset 4)
+(setq-default c-basic-offset 4)
+(defun my/clang-format-buffer ()
+  "Run clang-format on the current buffer."
+  (when (or (string-equal (file-name-extension buffer-file-name) "cpp")
+            (string-equal (file-name-extension buffer-file-name) "h")
+            (string-equal (file-name-extension buffer-file-name) "hpp"))
+    (clang-format-buffer)))
+
+(add-hook 'before-save-hook 'my/clang-format-buffer)
 
 (use-package csharp-mode)
+
+(use-package protobuf-mode
+  :mode ("\\.proto\\'" . protobuf-mode)
+  :hook (protobuf-mode . lsp))
+
+(lsp-register-client
+ (make-lsp-client
+  :new-connection (lsp-stdio-connection '("buf" "beta" "lsp"))
+  :major-modes '(protobuf-mode)
+  :server-id 'buf-lsp))
 
 (use-package treemacs
   :config
@@ -428,15 +462,22 @@
 
 (use-package project)
 
-(jongmin/leader-keys
-  "p" '(:ignore t :which-key "project")
-  "pp" 'project-switch-project
-  "pc" 'project-compile
-  "pf" 'project-find-file
-  "pb" 'project-switch-to-buffer
-  "psr" 'consult-ripgrep
-  "prr"     'project-query-replace-regexp
-  )
+  (jongmin/leader-keys
+    "p" '(:ignore t :which-key "project")
+    "pp" 'project-switch-project
+    "pc" 'project-compile
+    "pf" 'project-find-file
+    "pb" 'project-switch-to-buffer
+    "psr" 'consult-ripgrep
+    "prr"     'project-query-replace-regexp
+    )
+
+(defun my-project-root (dir)
+  (let ((root (locate-dominating-file dir ".project")))
+    (when root
+      (cons 'vc root))))
+
+(add-hook 'project-find-functions #'my-project-root)
 
 (use-package which-key
   :defer 0 
