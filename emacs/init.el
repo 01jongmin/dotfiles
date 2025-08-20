@@ -354,24 +354,10 @@
   (setq gc-cons-threshold 100000000)
   (setq read-process-output-max (* 1024 1024)) ;; 1mb
   (setq lsp-log-io nil)
+  (setq lsp-clients-clangd-args '("--limit-references=0"))
   (setq lsp-auto-guess-root nil)
   (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
   (setq lsp-clients-clangd-executable "/usr/bin/clangd")
-
-  ;; Combine both sets of arguments
-  (setq lsp-clients-clangd-args '("--limit-references=0"))
-
-  :config
-  ;; Function to dynamically set compile-commands-dir
-  (defun my-lsp-clangd-set-compile-commands-dir ()
-    "Set clangd compile-commands-dir to current project root."
-    (when-let ((proj (project-current)))
-      (setq-local lsp-clients-clangd-args 
-                  (append '("--limit-references=0") 
-                          `("--compile-commands-dir" ,(project-root proj))))))
-
-  ;; Apply this when LSP starts
-  (add-hook 'lsp-mode-hook #'my-lsp-clangd-set-compile-commands-dir)
   )
 
 (add-hook 'prog-mode-hook 'lsp)
