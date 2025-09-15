@@ -440,6 +440,10 @@ Registers hook to tangle Emacs.org to init.el on save
     "rr" 'query-replace-regexp)
 #+end_src
 * LSP
+** Node
+#+begin_src emacs-lisp
+(add-to-list 'exec-path "/home/jongmin/.nvm/versions/node/v17.9.1/bin")
+#+end_src
 ** Core
 #+begin_src emacs-lisp
   (use-package lsp-mode
@@ -453,6 +457,7 @@ Registers hook to tangle Emacs.org to init.el on save
     (setq lsp-auto-guess-root nil)
     (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
     (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+    (setq lsp-cmake-server-command "/home/jongmin/.local/bin/cmake-language-server")
     )
 
   (add-hook 'prog-mode-hook 'lsp)
@@ -541,6 +546,14 @@ Registers hook to tangle Emacs.org to init.el on save
 
 #+end_src
 
+*** Yaml
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :mode ("\\.ya?ml\\'" . yaml-mode)
+    :hook (yaml-mode . lsp)
+    )
+#+end_src
+
 ** Treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
@@ -592,4 +605,8 @@ Registers hook to tangle Emacs.org to init.el on save
 ** TLDR
 #+begin_src emacs-lisp
   (use-package tldr)
+#+end_src
+* Path
+#+begin_src emacs-lisp
+  (setenv "PATH" (concat "/home/jongmin/miniconda3/envs/mimid2:/home/jongmin/.nvm/versions/node/v17.9.1/bin:" (getenv "PATH")))
 #+end_src
