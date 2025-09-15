@@ -347,6 +347,8 @@
   "r" '(:ignore r :which-key "regex")
   "rr" 'query-replace-regexp)
 
+(add-to-list 'exec-path "/home/jongmin/.nvm/versions/node/v17.9.1/bin")
+
 (use-package lsp-mode
   :init
   ;; Defaults to improve performance
@@ -356,8 +358,9 @@
   (setq lsp-log-io nil)
   (setq lsp-clients-clangd-args '("--limit-references=0"))
   (setq lsp-auto-guess-root nil)
-  (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
+  (setq project-vc-extra-root-markers '(".project", ".git" ".gitmodules"))
   (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+  (setq lsp-cmake-server-command "/home/jongmin/.local/bin/cmake-language-server")
   )
 
 (add-hook 'prog-mode-hook 'lsp)
@@ -431,6 +434,11 @@
   :major-modes '(protobuf-mode)
   :server-id 'buf-lsp))
 
+(use-package yaml-mode
+  :mode ("\\.ya?ml\\'" . yaml-mode)
+  :hook (yaml-mode . lsp)
+  )
+
 (use-package treemacs
   :config
   (treemacs-project-follow-mode t)
@@ -472,3 +480,5 @@
   (setq which-key-idle-delay 0.3))
 
 (use-package tldr)
+
+(setenv "PATH" (concat "/home/jongmin/miniconda3/envs/mimid2:/home/jongmin/.nvm/versions/node/v17.9.1/bin:" (getenv "PATH")))
