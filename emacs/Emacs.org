@@ -455,7 +455,7 @@ Registers hook to tangle Emacs.org to init.el on save
     (setq lsp-log-io nil)
     (setq lsp-clients-clangd-args '("--limit-references=0"))
     (setq lsp-auto-guess-root nil)
-    (setq project-vc-extra-root-markers '(".git" ".gitmodules"))
+    (setq project-vc-extra-root-markers '(".project", ".git" ".gitmodules"))
     (setq lsp-clients-clangd-executable "/usr/bin/clangd")
     (setq lsp-cmake-server-command "/home/jongmin/.local/bin/cmake-language-server")
     )
