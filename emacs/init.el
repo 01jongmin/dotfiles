@@ -310,10 +310,13 @@
   (completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package marginalia
-  :bind (:map minibuffer-local-map
-              ("M-A" . marginalia-cycle))
-  :init
-  (marginalia-mode))
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode))
+
+(unless (fboundp 'oclosure-type)
+  (defun oclosure-type (_) nil))
 
 (use-package consult
   :bind (("C-s" . consult-line))
@@ -335,13 +338,20 @@
 (use-package evil-nerd-commenter
   :bind ("C-/" . evilnc-comment-or-uncomment-lines))
 
+(use-package transient)
+
 (use-package magit
   :commands magit-status)
 
-(jongmin/leader-keys
-  "g" '(:ignore g :which-key "git")
-  "gb" '(magit-blame :which-key "git blame")
-  "gs" '(magit-status :which-key "status"))
+(
+ jongmin/leader-keys
+ "g" '(:ignore g :which-key "git")
+ "gb" '(magit-blame :which-key "git blame")
+ "gs" '(magit-status :which-key "status")
+ "gw" '(magit-worktree :which-key "worktree")
+ "gm" '(:ignore :which-key "submodule")
+ "gmu" '(magit-submodule-update :which-key "update")
+ )
 
 (jongmin/leader-keys
   "r" '(:ignore r :which-key "regex")
@@ -350,31 +360,37 @@
 (add-to-list 'exec-path "/home/jongmin/.nvm/versions/node/v17.9.1/bin")
 
 (use-package lsp-mode
-  :init
-  ;; Defaults to improve performance
-  ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
-  (setq gc-cons-threshold 100000000)
-  (setq read-process-output-max (* 1024 1024)) ;; 1mb
-  (setq lsp-log-io nil)
-  (setq lsp-clients-clangd-args '("--limit-references=0"))
-  (setq lsp-auto-guess-root nil)
-  (setq project-vc-extra-root-markers '(".project", ".git" ".gitmodules"))
-  (setq lsp-clients-clangd-executable "/usr/bin/clangd")
-  (setq lsp-cmake-server-command "/home/jongmin/.local/bin/cmake-language-server")
-  )
+      :init
+      ;; Defaults to improve performance
+      ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
+      (setq gc-cons-threshold 100000000)
+      (setq read-process-output-max (* 1024 1024)) ;; 1mb
+      (setq lsp-log-io nil)
+(setq lsp-clients-clangd-args
+      '("--limit-references=0"
+        "--clang-tidy"))
+      (setq lsp-auto-guess-root nil)
+      (setq project-vc-extra-root-markers '(".project" ".git" ".gitmodules"))
+      (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+      (setq lsp-cmake-server-command "/home/jongmin/.local/bin/cmake-language-server")
+      (setq lsp-diagnostics-provider :auto) 
+      )
 
-(add-hook 'prog-mode-hook 'lsp)
+    (add-hook 'prog-mode-hook 'lsp)
 
 (use-package flycheck
   :ensure t
-  :init (global-flycheck-mode))
+  :init
+  (global-flycheck-mode))
+  ;; :config
+  ;; ;; Make LSP the default checker for all buffers
+  ;; (setq-default flycheck-checker 'lsp))
 
 (use-package lsp-ui
   :config
   ;; (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-diagnostics t)
   (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-diagnostics-provider :flycheck)
   )
 ;; (setq lsp-ui-sideline-show-hover t)
 
@@ -408,9 +424,7 @@
 (use-package cmake-mode)
 
 (use-package clang-format
-  :after lsp
-  :config 
-  (global-set-key C-M-\ 'clang-format-region))
+  :bind ("C-M-\\" . clang-format-region))
 
 (setq-default c-basic-offset 4)
 (defun my/clang-format-buffer ()
@@ -423,6 +437,9 @@
 (add-hook 'before-save-hook 'my/clang-format-buffer)
 
 (use-package csharp-mode)
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (local-set-key (kbd "C-M-\\") #'clang-format-region)))
 
 (use-package protobuf-mode
   :mode ("\\.proto\\'" . protobuf-mode)
@@ -482,3 +499,6 @@
 (use-package tldr)
 
 (setenv "PATH" (concat "/home/jongmin/miniconda3/envs/mimid2:/home/jongmin/.nvm/versions/node/v17.9.1/bin:" (getenv "PATH")))
+
+(use-package vterm :ensure t)
+(use-package claude-code)
