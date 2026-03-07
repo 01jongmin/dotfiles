@@ -627,3 +627,8 @@ Registers hook to tangle Emacs.org to init.el on save
 #+begin_src emacs-lisp
   (setenv "PATH" (concat "/home/jongmin/miniconda3/envs/mimid2:/home/jongmin/.nvm/versions/node/v17.9.1/bin:" (getenv "PATH")))
 #+end_src
+* Claude Code
+#+begin_src emacs-lisp
+  (use-package vterm :ensure t)
+  (use-package claude-code)
+#+end_src
